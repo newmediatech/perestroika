@@ -1,6 +1,7 @@
 class RestException(BaseException):
-    def __init__(self, message=None) -> None:
+    def __init__(self, message=None, status_code=None) -> None:
         self.message = message
+        self.status_code = status_code
 
 
 class ValidationException(BaseException):

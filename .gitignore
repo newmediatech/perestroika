@@ -10,5 +10,5 @@ dist/
 .cache/
 docs/build/*
 !docs/build/.keep
-validate_it.egg-info
+*.egg-info
 test.db

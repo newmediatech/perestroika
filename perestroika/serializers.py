@@ -31,8 +31,6 @@ class DjangoSerializer:
 
             bundle["items"] = _new_items
 
-        _data['error_code'] = bundle.get('error_code', 0)
-
         _items = bundle.get("items", [])
 
         if len(_items) is 1:
@@ -40,16 +38,8 @@ class DjangoSerializer:
         else:
             _data["items"] = _items
 
-        if bundle.get("filter"):
-            _data["filter"] = bundle["filter"]
-
-        if bundle.get("order"):
-            _data["order"] = bundle["order"]
-
-        if bundle.get("project"):
-            _data["project"] = bundle["project"]
-
-        if bundle.get("profile_version"):
-            _data["profile_version"] = bundle["profile_version"]
+        for item in ['filter', 'order', 'project', 'error_code', 'error_message', 'status_code']:
+            if bundle.get(item):
+                _data[item] = bundle[item]
 
         return JsonResponse(_data, status=bundle['status_code'], encoder=self.get_encoder())

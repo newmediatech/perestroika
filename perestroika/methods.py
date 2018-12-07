@@ -155,7 +155,7 @@ class Method:
         except RestException as e:
             bundle['error_code'] = -1
             bundle['error_message'] = e.message
-            bundle['status_code'] = 500
+            bundle['status_code'] = e.status_code
 
         self.apply_response_hooks(request, bundle)
 
