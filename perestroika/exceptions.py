@@ -10,9 +10,13 @@ class ValidationException(BaseException):
 
 
 class BadRequest(RestException):
-    status_code = 400
+    def __init__(self, message=None, status_code=None) -> None:
+        super().__init__(message, status_code)
+        self.status_code = 400
 
 
 class MethodNotAllowed(RestException):
-    status_code = 405
+    def __init__(self, message=None, status_code=None) -> None:
+        super().__init__(message, status_code)
+        self.status_code = 405
 

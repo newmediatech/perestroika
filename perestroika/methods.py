@@ -123,7 +123,7 @@ class Method:
     def handle(self, request):
         try:
             bundle = self.get_client_data(request)
-        except BadRequest as e:
+        except RestException as e:
             bundle = {
                 'error_code': -1,
                 'error_message': e.message,
@@ -138,7 +138,7 @@ class Method:
             try:
                 self.validate_input(bundle)
             except ValidationException as e:
-                raise RestException(message=e.message)
+                raise RestException(message=e.message, status_code=400)
 
             self.apply_pre_query_hooks(request, bundle)
 
@@ -150,7 +150,7 @@ class Method:
             try:
                 self.validate_output(bundle)
             except ValidationException as e:
-                raise RestException(message=e.message)
+                raise RestException(message=e.message, status_code=400)
 
         except RestException as e:
             bundle['error_code'] = -1
