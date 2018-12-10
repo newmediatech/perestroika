@@ -90,7 +90,7 @@ class Method:
                 _objects.append(_object)
 
         if _errors:
-            raise ValidationException(message=json.dumps({"errors": _errors, "items": bundle["items"]}))
+            raise ValidationException(message={"errors": _errors, "items": bundle["items"]})
 
         bundle["items"] = _objects
 
