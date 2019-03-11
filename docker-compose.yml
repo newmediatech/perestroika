@@ -1,11 +1,20 @@
 version: '2'
 
 services:
-  test:
-    image: perestroika
+  python3.6:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: python3.6.dockerfile
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+    volumes:
+      - "./:/var/perestroika/"
+    command: bash -c "coverage run --source='./perestroika/' -m pytest tests -vv && coverage combine && coverage report"
+
+  pypy:
+    build:
+      context: .
+      dockerfile: pypy.dockerfile
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
     volumes:

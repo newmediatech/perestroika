@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = "0.0.5"
+version = "0.0.6"
 
 setup(
     name="perestroika",
@@ -14,11 +14,12 @@ setup(
     download_url="https://github.com/newmediatech/perestroika/archive/{}.tar.gz".format(version),
     keywords=["REST"],
     classifiers=[],
-    python_requires=">3.7.0",
+    python_requires=">3.6.0",
     platforms=["OS Independent"],
     license="LICENSE.txt",
     install_requires=[
-        "validate-it (==0.3.8)",
+        "validate-it (==0.4.0)",
+        "attrs (==19.1.0)",
     ],
     extras_require={
         "tests": [

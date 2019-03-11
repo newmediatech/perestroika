@@ -1,13 +1,12 @@
-import json
 from collections import Callable
-from dataclasses import dataclass, field
 from typing import Union, List, Any
 
+import attr
 from validate_it import Schema, Validator
 
 from perestroika.db_layers import DbLayer, DjangoDbLayer
 from perestroika.deserializers import Deserializer, DjangoDeserializer
-from perestroika.exceptions import RestException, ValidationException, BadRequest
+from perestroika.exceptions import RestException, ValidationException
 from perestroika.serializers import Serializer, DjangoSerializer
 
 
@@ -15,7 +14,7 @@ class DenyAll(Schema):
     pass
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class Method:
     mode: str = 'django'
 
@@ -28,16 +27,16 @@ class Method:
 
     skip_query_db: bool = False
 
-    input_validator: Validator = field(default_factory=DenyAll)
-    output_validator: Validator = field(default_factory=DenyAll)
+    input_validator: Validator = attr.Factory(DenyAll)
+    output_validator: Validator = attr.Factory(DenyAll)
 
-    pre_query_hooks: List[Callable] = field(default_factory=list)
-    post_query_hooks: List[Callable] = field(default_factory=list)
+    pre_query_hooks: List[Callable] = attr.Factory(list)
+    post_query_hooks: List[Callable] = attr.Factory(list)
 
-    request_hooks: List[Callable] = field(default_factory=list)
-    response_hooks: List[Callable] = field(default_factory=list)
+    request_hooks: List[Callable] = attr.Factory(list)
+    response_hooks: List[Callable] = attr.Factory(list)
 
-    def __post_init__(self):
+    def __attrs_post_init__(self):
         if self.mode == 'django':
             query_field_name = 'queryset'
 
@@ -162,10 +161,10 @@ class Method:
         return self.serializer.serialize(request, bundle)
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class CanFilterAndExclude(Method):
-    filter_validator: Validator = field(default_factory=DenyAll)
-    exclude_validator: Validator = field(default_factory=DenyAll)
+    filter_validator: Validator = attr.Factory(DenyAll)
+    exclude_validator: Validator = attr.Factory(DenyAll)
 
     def set_default_success_code(self, bundle):
         raise NotImplementedError()
@@ -180,7 +179,7 @@ class CanFilterAndExclude(Method):
         return _schema
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class NoBodyNoObjectsNoInput(CanFilterAndExclude):
     def set_default_success_code(self, bundle):
         raise NotImplementedError()
@@ -193,7 +192,7 @@ class NoBodyNoObjectsNoInput(CanFilterAndExclude):
         raise NotImplementedError()
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class Get(NoBodyNoObjectsNoInput):
     def query_db(self, bundle):
         self.db_layer.get(bundle, self)
@@ -202,9 +201,9 @@ class Get(NoBodyNoObjectsNoInput):
         bundle["status_code"] = 200
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class Post(Method):
-    input_validator: Validator = field(default_factory=DenyAll)
+    input_validator: Validator = attr.Factory(DenyAll)
 
     def query_db(self, bundle):
         self.db_layer.post(bundle, self)
@@ -218,12 +217,12 @@ class Post(Method):
         bundle["status_code"] = 201
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class Put(CanFilterAndExclude):
     def query_db(self, bundle):
         raise NotImplementedError()
 
-    input_validator: Validator = field(default_factory=DenyAll)
+    input_validator: Validator = attr.Factory(DenyAll)
 
     def set_default_success_code(self, bundle):
         raise NotImplementedError()
@@ -234,9 +233,9 @@ class Put(CanFilterAndExclude):
         return _schema
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class Patch(CanFilterAndExclude):
-    input_validator: Validator = field(default_factory=DenyAll)
+    input_validator: Validator = attr.Factory(DenyAll)
 
     def query_db(self, bundle):
         raise NotImplementedError()
@@ -250,7 +249,7 @@ class Patch(CanFilterAndExclude):
         return _schema
 
 
-@dataclass
+@attr.s(auto_attribs=True)
 class Delete(NoBodyNoObjectsNoInput):
     def query_db(self, bundle):
         raise NotImplementedError()
