@@ -1,3 +1,5 @@
+import logging
+import os
 from collections import Callable
 from typing import Union, List, Any
 
@@ -8,6 +10,9 @@ from perestroika.db_layers import DbLayer, DjangoDbLayer
 from perestroika.deserializers import Deserializer, DjangoDeserializer
 from perestroika.exceptions import RestException, ValidationException
 from perestroika.serializers import Serializer, DjangoSerializer
+
+
+logger = logging.getLogger(__name__)
 
 
 class DenyAll(Schema):
@@ -81,7 +86,12 @@ class Method:
         _objects = []
 
         for _object in bundle["items"]:
-            _error, _object = validator.validate_it(_object, convert=True, strip_unknown=strip_unknown)
+            _error, _object = validator.validate_it(
+                _object,
+                convert=True,
+                strip_unknown=strip_unknown,
+                short_debug=os.getenv("SHORT_DEBUG", False)
+            )
 
             if _error:
                 _errors.append(_error)
@@ -155,6 +165,10 @@ class Method:
             bundle['error_code'] = -1
             bundle['error_message'] = e.message
             bundle['status_code'] = e.status_code
+
+        if bundle['status_code'] >= 400:
+            logger.debug(bundle['error_message'])
+            logger.debug(bundle['items'])
 
         self.apply_response_hooks(request, bundle)
 

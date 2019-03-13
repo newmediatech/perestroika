@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = "0.0.6"
+version = "0.0.7"
 
 setup(
     name="perestroika",
@@ -18,7 +18,7 @@ setup(
     platforms=["OS Independent"],
     license="LICENSE.txt",
     install_requires=[
-        "validate-it (==0.4.0)",
+        "validate-it (==0.4.1)",
         "attrs (==19.1.0)",
     ],
     extras_require={
