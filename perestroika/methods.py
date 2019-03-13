@@ -130,28 +130,19 @@ class Method:
         self.apply_hooks(self.response_hooks, request, bundle)
 
     def handle(self, request):
-        bundle = {}
+        bundle = self.get_client_data(request)
 
-        try:
-            bundle = self.get_client_data(request)
+        self.set_default_success_code(bundle)
+        self.apply_request_hooks(request, bundle)
+        self.validate_input(bundle)
+        self.apply_pre_query_hooks(request, bundle)
 
-            self.set_default_success_code(bundle)
-            self.apply_request_hooks(request, bundle)
-            self.validate_input(bundle)
-            self.apply_pre_query_hooks(request, bundle)
+        if not self.skip_query_db:
+            self.query_db(bundle)
 
-            if not self.skip_query_db:
-                self.query_db(bundle)
-
-            self.apply_post_query_hooks(request, bundle)
-            self.validate_output(bundle)
-            self.apply_response_hooks(request, bundle)
-        except BaseException as e:
-            bundle['error_code'] = -1
-            bundle['error_message'] = getattr(e, 'message') if hasattr(e, 'message') else str(e)
-            bundle['status_code'] = getattr(e, 'status_code') if hasattr(e, 'status_code') else 500
-
-            logger.error(bundle['error_message'])
+        self.apply_post_query_hooks(request, bundle)
+        self.validate_output(bundle)
+        self.apply_response_hooks(request, bundle)
 
         return self.serializer.serialize(request, bundle)
 

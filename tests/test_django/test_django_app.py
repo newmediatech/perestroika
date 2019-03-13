@@ -2,6 +2,7 @@ from json import dumps
 
 from django.test import TestCase
 
+from perestroika.exceptions import BadRequest
 from perestroika.utils import dict_to_multi_dict
 
 
@@ -24,14 +25,5 @@ class DjangoTest(TestCase):
         assert _response.status_code == 200
 
     def test_json_validation_no_items(self):
-        _response = self.make_empty_post("/test/full/")
-        assert _response.status_code == 400
-        assert _response.json() == {
-            'error_code': -1,
-            'error_message': 'Need data for processing',
-            'items': [],
-            'limit': 0,
-            'skip': 0,
-            'status_code': 400,
-            'total_count': 0
-        }
+        with self.assertRaises(BadRequest):
+            _response = self.make_empty_post("/test/full/")
