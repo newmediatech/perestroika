@@ -151,7 +151,7 @@ class Method:
             bundle['error_message'] = getattr(e, 'message') if hasattr(e, 'message') else str(e)
             bundle['status_code'] = getattr(e, 'status_code') if hasattr(e, 'status_code') else 500
 
-            logger.debug(bundle)
+            logger.error(bundle['error_message'])
 
         return self.serializer.serialize(request, bundle)
 
