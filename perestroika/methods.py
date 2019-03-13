@@ -148,8 +148,8 @@ class Method:
             self.apply_response_hooks(request, bundle)
         except BaseException as e:
             bundle['error_code'] = -1
-            bundle['error_message'] = getattr(e, 'message') or str(e)
-            bundle['status_code'] = getattr(e, 'status_code', 500)
+            bundle['error_message'] = getattr(e, 'message') if hasattr(e, 'message') else str(e)
+            bundle['status_code'] = getattr(e, 'status_code') if hasattr(e, 'status_code') else 500
 
             logger.debug(bundle)
 
