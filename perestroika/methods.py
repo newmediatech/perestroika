@@ -130,47 +130,28 @@ class Method:
         self.apply_hooks(self.response_hooks, request, bundle)
 
     def handle(self, request):
+        bundle = {}
+
         try:
             bundle = self.get_client_data(request)
-        except RestException as e:
-            bundle = {
-                'error_code': -1,
-                'error_message': e.message,
-                'status_code': e.status_code
-            }
-            return self.serializer.serialize(request, bundle)
 
-        self.set_default_success_code(bundle)
-        self.apply_request_hooks(request, bundle)
-
-        try:
-            try:
-                self.validate_input(bundle)
-            except ValidationException as e:
-                raise RestException(message=e.message, status_code=400)
-
+            self.set_default_success_code(bundle)
+            self.apply_request_hooks(request, bundle)
+            self.validate_input(bundle)
             self.apply_pre_query_hooks(request, bundle)
 
             if not self.skip_query_db:
                 self.query_db(bundle)
 
             self.apply_post_query_hooks(request, bundle)
-
-            try:
-                self.validate_output(bundle)
-            except ValidationException as e:
-                raise RestException(message=e.message, status_code=400)
-
-        except RestException as e:
+            self.validate_output(bundle)
+            self.apply_response_hooks(request, bundle)
+        except BaseException as e:
             bundle['error_code'] = -1
-            bundle['error_message'] = e.message
-            bundle['status_code'] = e.status_code
+            bundle['error_message'] = getattr(e, 'message') or str(e)
+            bundle['status_code'] = getattr(e, 'status_code', 500)
 
-        if bundle['status_code'] >= 400:
-            logger.debug(bundle['error_message'])
-            logger.debug(bundle['items'])
-
-        self.apply_response_hooks(request, bundle)
+            logger.debug(bundle)
 
         return self.serializer.serialize(request, bundle)
 
