@@ -7,6 +7,13 @@ from perestroika.utils import dict_to_multi_dict
 
 
 class DjangoTest(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        import django
+        django.setup()
+
     def make_post(self, url, data):
         return self.client.post(url, dumps(data), content_type='application/json')
 
