@@ -8,7 +8,7 @@ from validate_it import Schema, Validator
 
 from perestroika.db_layers import DbLayer, DjangoDbLayer
 from perestroika.deserializers import Deserializer, DjangoDeserializer
-from perestroika.exceptions import RestException, ValidationException
+from perestroika.exceptions import RestException, BadRequest, InternalServerError
 from perestroika.serializers import Serializer, DjangoSerializer
 
 
@@ -81,7 +81,7 @@ class Method:
         raise NotImplementedError()
 
     @staticmethod
-    def validate(validator: Schema, bundle, strip_unknown=False):
+    def validate(validator: Schema, bundle, strip_unknown=False, validation_exception_class=RestException):
         _errors = []
         _objects = []
 
@@ -99,15 +99,15 @@ class Method:
                 _objects.append(_object)
 
         if _errors:
-            raise ValidationException(message={"errors": _errors, "items": bundle["items"]})
+            raise validation_exception_class(message={"errors": _errors, "items": bundle["items"]})
 
         bundle["items"] = _objects
 
     def validate_input(self, bundle):
-        self.validate(self.input_validator, bundle, strip_unknown=False)
+        self.validate(self.input_validator, bundle, strip_unknown=False, validation_exception_class=BadRequest)
 
     def validate_output(self, bundle):
-        self.validate(self.output_validator, bundle, strip_unknown=True)
+        self.validate(self.output_validator, bundle, strip_unknown=True, validation_exception_class=InternalServerError)
 
     @staticmethod
     def apply_hooks(hooks, request, bundle):
