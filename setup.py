@@ -26,7 +26,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Framework :: Django',
+        'Framework :: Django :: 2.2',
     ],
     python_requires=">3.6.0",
     platforms=["OS Independent"],
@@ -40,7 +40,7 @@ setup(
             "pytest (==3.6.0)",
             "coverage (==4.5)",
             "pytest-cov (==2.5.1)",
-            "django (==2.1.4)",
+            "django (==2.2)",
             "pytest-django (==3.2.0)",
         ],
         "docs": []
