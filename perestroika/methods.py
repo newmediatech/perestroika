@@ -4,7 +4,7 @@ from collections import Callable
 from typing import Union, List, Any
 
 import attr
-from validate_it import Schema, Validator
+from validate_it import Schema
 
 from perestroika.db_layers import DbLayer, DjangoDbLayer
 from perestroika.deserializers import Deserializer, DjangoDeserializer
@@ -16,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 
 class DenyAll(Schema):
-    pass
+    def __init__(self, **kwargs) -> None:
+        raise TypeError("Deny all types")
 
 
 @attr.s(auto_attribs=True)
@@ -32,8 +33,8 @@ class Method:
 
     skip_query_db: bool = False
 
-    input_validator: Validator = attr.Factory(DenyAll)
-    output_validator: Validator = attr.Factory(DenyAll)
+    input_validator: type = DenyAll
+    output_validator: type = DenyAll
 
     pre_query_hooks: List[Callable] = attr.Factory(list)
     post_query_hooks: List[Callable] = attr.Factory(list)
@@ -149,8 +150,8 @@ class Method:
 
 @attr.s(auto_attribs=True)
 class CanFilterAndExclude(Method):
-    filter_validator: Validator = attr.Factory(DenyAll)
-    exclude_validator: Validator = attr.Factory(DenyAll)
+    filter_validator: type = DenyAll
+    exclude_validator: type = DenyAll
 
     def set_default_success_code(self, bundle):
         raise NotImplementedError()
@@ -189,7 +190,7 @@ class Get(NoBodyNoObjectsNoInput):
 
 @attr.s(auto_attribs=True)
 class Post(Method):
-    input_validator: Validator = attr.Factory(DenyAll)
+    input_validator: type = DenyAll
 
     def query_db(self, bundle):
         self.db_layer.post(bundle, self)
@@ -208,7 +209,7 @@ class Put(CanFilterAndExclude):
     def query_db(self, bundle):
         raise NotImplementedError()
 
-    input_validator: Validator = attr.Factory(DenyAll)
+    input_validator: type = DenyAll
 
     def set_default_success_code(self, bundle):
         raise NotImplementedError()
@@ -221,7 +222,7 @@ class Put(CanFilterAndExclude):
 
 @attr.s(auto_attribs=True)
 class Patch(CanFilterAndExclude):
-    input_validator: Validator = attr.Factory(DenyAll)
+    input_validator: type = DenyAll
 
     def query_db(self, bundle):
         raise NotImplementedError()

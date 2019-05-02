@@ -27,7 +27,7 @@ from validate_it.strict import StrField, Schema
 
 
 class SuperUserValidator(Schema):
-    username = StrField(required=True)
+    username: str
 
 
 def reject_not_superuser(request, bundle):
@@ -52,7 +52,7 @@ class SuperUserResource(DjangoResource):
         ],
         
         # unknown fields WILL be stripped in outgoing data for security reasons
-        output_validator=SuperUserValidator(),
+        output_validator=SuperUserValidator,
     )
     
     # allowed method POST
@@ -68,6 +68,6 @@ class SuperUserResource(DjangoResource):
         ],
 
         # unknown fields WILL NOT be stripped in incoming data
-        input_validator=SuperUserValidator(),
+        input_validator=SuperUserValidator,
     )
 ```
