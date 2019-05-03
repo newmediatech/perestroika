@@ -41,6 +41,9 @@ def add_is_superuser_flag(request, bundle):
 
 
 class SuperUserResource(DjangoResource):
+    # use django @cache_control kwargs
+    cache_control = dict(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+
     # allowed method GET
     get = Get(
         # base queryset

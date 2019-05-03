@@ -1,19 +1,34 @@
+from typing import Dict, Union, Optional
+
+import attr
+
+from perestroika.methods import Method
+
+
+@attr.s
 class DjangoResource:
     from django.views.decorators.csrf import csrf_exempt
 
-    methods = None
+    methods: Optional[Dict[str, Method]] = None
+    cache_control: Dict[str, Union[bool, int]] = attr.Factory(dict)
 
     @csrf_exempt
     def handler(self, request):
         from django.http import HttpResponseNotAllowed
+        from django.utils.cache import patch_cache_control
 
         if self.methods:
             method = self.methods.get(request.method.lower())
 
             if method:
-                return method.handle(request)
+                response = method.handle(request)
 
-        permitted_methods = self.methods.values() if self.methods else []
+                if self.cache_control:
+                    patch_cache_control(response, **self.cache_control)
+
+                return response
+
+        permitted_methods = self.methods.keys() if self.methods else []
         return HttpResponseNotAllowed(permitted_methods=permitted_methods)
 
     def schema(self, request):

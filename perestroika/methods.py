@@ -1,7 +1,6 @@
 import logging
-import os
 from collections import Callable
-from typing import Union, List, Any
+from typing import List, Any, Optional
 
 import attr
 from validate_it import Schema
@@ -10,7 +9,6 @@ from perestroika.db_layers import DbLayer, DjangoDbLayer
 from perestroika.deserializers import Deserializer, DjangoDeserializer
 from perestroika.exceptions import RestException, BadRequest, InternalServerError
 from perestroika.serializers import Serializer, DjangoSerializer
-
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +24,10 @@ class Method:
 
     query: Any = None
     queryset: Any = None
-    db_layer: Union[DbLayer, None] = None
+    db_layer: Optional[DbLayer] = None
 
-    serializer: Union[Serializer, None] = None
-    deserializer: Union[Deserializer, None] = None
+    serializer: Optional[Serializer] = None
+    deserializer: Optional[Deserializer] = None
 
     skip_query_db: bool = False
 
@@ -43,8 +41,10 @@ class Method:
     response_hooks: List[Callable] = attr.Factory(list)
 
     def __attrs_post_init__(self):
+        need_fields = []
+
         if self.mode == 'django':
-            query_field_name = 'queryset'
+            need_fields = ['queryset']
 
             # allow custom db layers
             if not isinstance(self.db_layer, DjangoDbLayer):
@@ -58,17 +58,15 @@ class Method:
             if not isinstance(self.deserializer, DjangoDeserializer):
                 self.deserializer = DjangoDeserializer()
 
-        if getattr(self, query_field_name) is None and not self.skip_query_db:
-            raise ValueError(f"Empty `{query_field_name}` is allowed only for resources with `skip_query_db` == True")
+        for field in need_fields:
+            if getattr(self, field) is None and not self.skip_query_db:
+                raise ValueError(f"Empty `{field}` is allowed only for resources with `skip_query_db` == True")
 
     def __set_name__(self, owner, name):
         if not owner.methods:
             owner.methods = {}
 
-        if self.__class__.__name__.lower() != name.lower():
-            raise ValueError("Wrong name for method: method name must be equal with `Method` instance class name")
-
-        owner.methods[name.lower()] = self
+        owner.methods[self.__class__.__name__.lower()] = self
 
     def schema(self):
         return {
@@ -82,22 +80,16 @@ class Method:
         raise NotImplementedError()
 
     @staticmethod
-    def validate(validator: Schema, bundle, strip_unknown=False, validation_exception_class=RestException):
+    def validate(validator: Schema, bundle, validation_exception_class=RestException):
         _errors = []
         _objects = []
 
         for _object in bundle["items"]:
-            _error, _object = validator.validate_it(
-                _object,
-                convert=True,
-                strip_unknown=strip_unknown,
-                short_debug=os.getenv("SHORT_DEBUG", False)
-            )
-
-            if _error:
-                _errors.append(_error)
-            else:
+            try:
+                _object = validator.from_dict(_object).to_dict()
                 _objects.append(_object)
+            except TypeError as e:
+                _errors.append(e)
 
         if _errors:
             raise validation_exception_class(message={"errors": _errors, "items": bundle["items"]})
@@ -105,10 +97,11 @@ class Method:
         bundle["items"] = _objects
 
     def validate_input(self, bundle):
-        self.validate(self.input_validator, bundle, strip_unknown=False, validation_exception_class=BadRequest)
+        self.validate(self.input_validator, bundle, validation_exception_class=BadRequest)
 
     def validate_output(self, bundle):
-        self.validate(self.output_validator, bundle, strip_unknown=True, validation_exception_class=InternalServerError)
+        self.output_validator.Meta.strip_unknown = True
+        self.validate(self.output_validator, bundle, validation_exception_class=InternalServerError)
 
     @staticmethod
     def apply_hooks(hooks, request, bundle):

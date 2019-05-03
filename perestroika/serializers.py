@@ -6,7 +6,7 @@ class Serializer:
     pass
 
 
-class DjangoSerializer:
+class DjangoSerializer(Serializer):
     @staticmethod
     def get_encoder():
         return DjangoJSONEncoder
