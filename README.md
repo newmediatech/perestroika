@@ -23,10 +23,11 @@ from django.contrib.auth.models import User
 from perestroika.resource import DjangoResource
 from perestroika.methods import Get, Post
 from perestroika.exceptions import RestException
-from validate_it.strict import StrField, Schema
+from validate_it import schema
 
 
-class SuperUserValidator(Schema):
+@schema
+class SuperUserValidator:
     username: str
 
 

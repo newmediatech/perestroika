@@ -1,6 +1,5 @@
-import attr
 from django.contrib.auth.models import User
-from validate_it import Schema
+from validate_it import schema
 
 from perestroika.methods import Get, Post, Put, Patch, Delete
 from perestroika.resource import DjangoResource
@@ -10,7 +9,8 @@ class EmptyResource(DjangoResource):
     pass
 
 
-class UserValidator(Schema):
+@schema(strip_unknown=True)
+class OutUserValidator:
     username: str
 
 
@@ -19,7 +19,7 @@ class FullResource(DjangoResource):
 
     get = Get(
         queryset=User.objects.all(),
-        output_validator=UserValidator
+        output_validator=OutUserValidator
     )
 
     post = Post(

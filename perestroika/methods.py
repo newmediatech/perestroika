@@ -3,7 +3,7 @@ from collections import Callable
 from typing import List, Any, Optional
 
 import attr
-from validate_it import Schema
+from validate_it import schema, to_dict
 
 from perestroika.db_layers import DbLayer, DjangoDbLayer
 from perestroika.deserializers import Deserializer, DjangoDeserializer
@@ -13,7 +13,8 @@ from perestroika.serializers import Serializer, DjangoSerializer
 logger = logging.getLogger(__name__)
 
 
-class DenyAll(Schema):
+@schema(strip_unknown=True)
+class DenyAll:
     def __init__(self, **kwargs) -> None:
         raise TypeError("Deny all types")
 
@@ -80,13 +81,13 @@ class Method:
         raise NotImplementedError()
 
     @staticmethod
-    def validate(validator: Schema, bundle, validation_exception_class=RestException):
+    def validate(validator, bundle, validation_exception_class=RestException):
         _errors = []
         _objects = []
 
         for _object in bundle["items"]:
             try:
-                _object = validator.from_dict(_object).to_dict()
+                _object = to_dict(validator(**_object))
                 _objects.append(_object)
             except TypeError as e:
                 _errors.append(e)
@@ -100,7 +101,6 @@ class Method:
         self.validate(self.input_validator, bundle, validation_exception_class=BadRequest)
 
     def validate_output(self, bundle):
-        self.output_validator.Meta.strip_unknown = True
         self.validate(self.output_validator, bundle, validation_exception_class=InternalServerError)
 
     @staticmethod
