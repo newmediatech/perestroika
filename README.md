@@ -23,12 +23,12 @@ from django.contrib.auth.models import User
 from perestroika.resource import DjangoResource
 from perestroika.methods import Get, Post
 from perestroika.exceptions import RestException
-from validate_it import schema
 
 
-@schema
-class SuperUserValidator:
-    username: str
+
+class Validator:
+    def __call__(self, item: dict) -> dict:
+        return {'username': item['username']}
 
 
 def reject_not_superuser(request, bundle):
@@ -55,8 +55,8 @@ class SuperUserResource(DjangoResource):
             reject_not_superuser
         ],
         
-        # unknown fields WILL be stripped in outgoing data for security reasons
-        output_validator=SuperUserValidator,
+        # any callable
+        output_validator=Validator,
     )
     
     # allowed method POST
@@ -71,7 +71,7 @@ class SuperUserResource(DjangoResource):
             add_is_superuser_flag
         ],
 
-        # unknown fields WILL NOT be stripped in incoming data
-        input_validator=SuperUserValidator,
+        # any callable
+        input_validator=Validator,
     )
 ```

@@ -3,7 +3,6 @@ from collections import Callable
 from typing import List, Any, Optional
 
 import attr
-from validate_it import schema, to_dict
 
 from perestroika.db_layers import DbLayer, DjangoDbLayer
 from perestroika.deserializers import Deserializer, DjangoDeserializer
@@ -13,7 +12,6 @@ from perestroika.serializers import Serializer, DjangoSerializer
 logger = logging.getLogger(__name__)
 
 
-@schema(strip_unknown=True)
 class DenyAll:
     def __init__(self, **kwargs) -> None:
         raise TypeError("Deny all types")
@@ -32,8 +30,8 @@ class Method:
 
     skip_query_db: bool = False
 
-    input_validator: type = DenyAll
-    output_validator: type = DenyAll
+    input_validator: Callable = DenyAll
+    output_validator: Callable = DenyAll
 
     pre_query_hooks: List[Callable] = attr.Factory(list)
     post_query_hooks: List[Callable] = attr.Factory(list)
@@ -87,7 +85,7 @@ class Method:
 
         for _object in bundle["items"]:
             try:
-                _object = to_dict(validator(**_object))
+                _object = validator(_object)
                 _objects.append(_object)
             except TypeError as e:
                 _errors.append(e)

@@ -1,3 +1,2 @@
-validate-it==0.8.2
 attrs==19.1.0
 django==2.2
