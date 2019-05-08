@@ -2,7 +2,7 @@ from os import path
 
 from setuptools import setup, find_packages
 
-version = "0.1.3"
+version = "0.1.4"
 
 here = path.abspath(path.dirname(__file__))
 
@@ -32,7 +32,7 @@ setup(
     platforms=["OS Independent"],
     license="LICENSE.txt",
     install_requires=[
-        "validate-it (==0.7.0)",
+        "validate-it (==0.8.2)",
         "attrs (==19.1.0)",
     ],
     extras_require={
