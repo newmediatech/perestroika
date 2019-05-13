@@ -88,10 +88,14 @@ class Method:
                 _object = validator(_object)
                 _objects.append(_object)
             except TypeError as e:
+                _desc = {
+                    "data": _object,
+                    "error": e
+                }
                 _errors.append(e)
 
         if _errors:
-            raise validation_exception_class(message={"errors": _errors, "items": bundle["items"]})
+            raise validation_exception_class(message="Wrong data", errors=_errors)
 
         bundle["items"] = _objects
 
@@ -141,8 +145,8 @@ class Method:
 
 @attr.s(auto_attribs=True)
 class CanFilterAndExclude(Method):
-    filter_validator: type = DenyAll
-    exclude_validator: type = DenyAll
+    filter_validator: Callable = DenyAll
+    exclude_validator: Callable = DenyAll
 
     def set_default_success_code(self, bundle):
         raise NotImplementedError()
@@ -181,7 +185,7 @@ class Get(NoBodyNoObjectsNoInput):
 
 @attr.s(auto_attribs=True)
 class Post(Method):
-    input_validator: type = DenyAll
+    input_validator: Callable = DenyAll
 
     def query_db(self, bundle):
         self.db_layer.post(bundle, self)
@@ -200,7 +204,7 @@ class Put(CanFilterAndExclude):
     def query_db(self, bundle):
         raise NotImplementedError()
 
-    input_validator: type = DenyAll
+    input_validator: Callable = DenyAll
 
     def set_default_success_code(self, bundle):
         raise NotImplementedError()
@@ -213,7 +217,7 @@ class Put(CanFilterAndExclude):
 
 @attr.s(auto_attribs=True)
 class Patch(CanFilterAndExclude):
-    input_validator: type = DenyAll
+    input_validator: Callable = DenyAll
 
     def query_db(self, bundle):
         raise NotImplementedError()
