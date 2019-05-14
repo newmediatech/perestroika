@@ -62,8 +62,8 @@ class Method:
                 raise ValueError(f"Empty `{field}` is allowed only for resources with `skip_query_db` == True")
 
     def __set_name__(self, owner, name):
-        if not owner.methods:
-            owner.methods = {}
+        if not hasattr(owner, 'methods') or not owner.methods:
+            setattr(owner, 'methods', {})
 
         owner.methods[self.__class__.__name__.lower()] = self
 

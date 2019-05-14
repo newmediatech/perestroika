@@ -1,16 +1,13 @@
 from typing import Dict, Union, Optional
 
-import attr
-
 from perestroika.methods import Method
 
 
-@attr.s
 class DjangoResource:
     from django.views.decorators.csrf import csrf_exempt
 
     methods: Optional[Dict[str, Method]] = None
-    cache_control: Dict[str, Union[bool, int]] = attr.Factory(dict)
+    cache_control: Dict[str, Union[bool, int]] = None
 
     @csrf_exempt
     def handler(self, request):

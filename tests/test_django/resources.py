@@ -1,3 +1,4 @@
+import attr
 from django.contrib.auth.models import User
 
 from perestroika.methods import Get, Post, Put, Patch, Delete

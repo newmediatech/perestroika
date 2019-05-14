@@ -57,3 +57,7 @@ class DjangoTest(TestCase):
     def test_json_validation_no_items(self):
         with self.assertRaises(BadRequest):
             _response = self.make_empty_post("/test/full/")
+
+    def test_admin(self):
+        _response = self.make_get("/admin/", {})
+        assert _response.status_code in [200, 302]
