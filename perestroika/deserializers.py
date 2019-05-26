@@ -5,7 +5,7 @@ from perestroika.utils import multi_dict_to_dict
 
 
 class Deserializer:
-    def deserialize(self, request, method):
+    def deserialize(self, request, method, *args, **kwargs):
         raise NotImplementedError()
 
 

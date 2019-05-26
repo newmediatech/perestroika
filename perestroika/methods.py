@@ -72,8 +72,8 @@ class Method:
             "output_schema": self.output_validator.representation()
         }
 
-    def get_client_data(self, request):
-        return self.deserializer.deserialize(request, self)
+    def get_client_data(self, request, *args, **kwargs):
+        return self.deserializer.deserialize(request, self, *args, **kwargs)
 
     def query_db(self, bundle):
         raise NotImplementedError()
@@ -125,8 +125,8 @@ class Method:
     def apply_response_hooks(self, request, bundle):
         self.apply_hooks(self.response_hooks, request, bundle)
 
-    def handle(self, request):
-        bundle = self.get_client_data(request)
+    def handle(self, request, *args, **kwargs):
+        bundle = self.get_client_data(request, *args, **kwargs)
 
         self.set_default_success_code(bundle)
         self.apply_request_hooks(request, bundle)
