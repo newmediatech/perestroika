@@ -45,16 +45,13 @@ class Method:
         if self.mode == 'django':
             need_fields = ['queryset']
 
-            # allow custom db layers
-            if not isinstance(self.db_layer, DjangoDbLayer):
+            if not self.db_layer:
                 self.db_layer = DjangoDbLayer()
 
-            # allow custom serializers
-            if not isinstance(self.serializer, DjangoSerializer):
+            if not self.serializer:
                 self.serializer = DjangoSerializer()
 
-            # allow custom deserializers
-            if not isinstance(self.deserializer, DjangoDeserializer):
+            if not self.deserializer:
                 self.deserializer = DjangoDeserializer()
 
         for field in need_fields:
@@ -69,7 +66,7 @@ class Method:
 
     def schema(self):
         return {
-            "output_schema": self.output_validator.representation()
+            "output_schema": repr(self.output_validator)
         }
 
     def get_client_data(self, request, *args, **kwargs):
@@ -156,8 +153,8 @@ class CanFilterAndExclude(Method):
 
     def schema(self):
         _schema = super().schema()
-        _schema["filter_schema"] = self.filter_validator.representation()
-        _schema["exclude_schema"] = self.exclude_validator.representation()
+        _schema["filter_schema"] = repr(self.filter_validator)
+        _schema["exclude_schema"] = repr(self.exclude_validator)
         return _schema
 
 
@@ -192,7 +189,7 @@ class Post(Method):
 
     def schema(self):
         _schema = super().schema()
-        _schema["input_schema"] = self.input_validator.representation()
+        _schema["input_schema"] = repr(self.input_validator)
         return _schema
 
     def set_default_success_code(self, bundle):
@@ -211,7 +208,7 @@ class Put(CanFilterAndExclude):
 
     def schema(self):
         _schema = super().schema()
-        _schema["input_schema"] = self.input_validator.representation()
+        _schema["input_schema"] = repr(self.input_validator)
         return _schema
 
 
@@ -227,7 +224,7 @@ class Patch(CanFilterAndExclude):
 
     def schema(self):
         _schema = super().schema()
-        _schema["input_schema"] = self.input_validator.representation()
+        _schema["input_schema"] = repr(self.input_validator)
         return _schema
 
 
