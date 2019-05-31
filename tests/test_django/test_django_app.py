@@ -36,6 +36,7 @@ class DjangoTest(TestCase):
             'item': {'username': "first"},
             'limit': 20,
             'skip': 0,
+            'project': [],
             'status_code': 200,
             'total_count': 1
         }
@@ -50,6 +51,7 @@ class DjangoTest(TestCase):
             'items': [{'username': "first"}, {"username": "second"}],
             'limit': 20,
             'skip': 0,
+            'project': [],
             'status_code': 200,
             'total_count': 2
         }
