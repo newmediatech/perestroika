@@ -59,7 +59,7 @@ class DjangoSerializer(Serializer):
         return JsonResponse(_data, status=bundle['status_code'], encoder=self.get_encoder())
 
 
-class JsonSerializer(Serializer):
+class JSONSerializer(Serializer):
     @staticmethod
     def get_encoder():
         return json.JSONEncoder

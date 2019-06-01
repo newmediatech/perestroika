@@ -1,14 +1,13 @@
+import django
+django.setup()
+
 from json import dumps
 
-import django
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 from perestroika.exceptions import BadRequest
 from perestroika.utils import dict_to_multi_dict
-
-django.setup()
-
-from django.contrib.auth.models import User
 
 
 class DjangoTest(TestCase):
@@ -37,6 +36,8 @@ class DjangoTest(TestCase):
             'limit': 20,
             'skip': 0,
             'project': [],
+            'order': {},
+            'filter': {},
             'status_code': 200,
             'total_count': 1
         }
@@ -52,6 +53,8 @@ class DjangoTest(TestCase):
             'limit': 20,
             'skip': 0,
             'project': [],
+            'order': {},
+            'filter': {},
             'status_code': 200,
             'total_count': 2
         }

@@ -60,7 +60,7 @@ class DjangoResource(Resource):
         return JsonResponse(_schema)
 
 
-class JsonResource(Resource):
+class JSONResource(Resource):
     def get_method_handler(self, **kwargs):
         if self.methods:
             return self.methods.get(kwargs.get('method'))

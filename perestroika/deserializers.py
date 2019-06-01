@@ -1,20 +1,16 @@
 import json
+from json import JSONDecodeError
 
 from perestroika.exceptions import BadRequest
 from perestroika.utils import multi_dict_to_dict
 
 
 class Deserializer:
-    def deserialize(self, request, method_handler, **kwargs):
+    def get_data(self, request, method_handler, **kwargs):
         raise NotImplementedError()
 
-
-class DjangoDeserializer(Deserializer):
     def deserialize(self, request, method_handler, **kwargs):
-        if request.method == 'GET':
-            _data = multi_dict_to_dict(request.GET)
-        else:
-            _data = json.loads(request.body)
+        _data = self.get_data(request, method_handler, **kwargs)
 
         _items = _data.get("items", [])
         _item = _data.get("item")
@@ -22,47 +18,38 @@ class DjangoDeserializer(Deserializer):
         if _item:
             _items = [_item]
 
-        if not _items and request.method in ["POST", "PUT", "PATCH"]:
+        if not _items and request.method.lower() in ["post", "put", "patch"]:
             raise BadRequest(message="Need data for processing")
 
         bundle = {
-            "order": _data.get("order"),
-            "filter": _data.get("filter"),
+            "order": _data.get("order", {}),
+            "filter": _data.get("filter", {}),
             "items": _items,
             "limit": 20,
             "skip": 0,
             "total_count": 0,
             "queryset": method_handler.queryset,
             "project": _data.get("project", []),
+            "meta": _data.get("meta", {}),
         }
 
         return bundle
 
 
-class JsonDeserializer(Deserializer):
-    def deserialize(self, request, handler, **kwargs):
-        ws_data = kwargs.get("ws_data", {})
-        method = kwargs.get("method", {})
+class DjangoDeserializer(Deserializer):
+    def get_data(self, request, method_handler, **kwargs):
+        try:
+            data = json.loads(request.body)
+        except JSONDecodeError:
+            data = {}
 
-        _items = ws_data.get("items", [])
-        _item = ws_data.get("item")
+        if request.method == 'GET':
+            uri_data = multi_dict_to_dict(request.GET)
+            data.update(uri_data)
 
-        if _item:
-            _items = [_item]
+        return data
 
-        if not _items and method in ["post", "put", "patch"]:
-            raise BadRequest(message="Need data for processing")
 
-        bundle = {
-            "order": ws_data.get("order"),
-            "filter": ws_data.get("filter"),
-            "items": _items,
-            "limit": 20,
-            "skip": 0,
-            "total_count": 0,
-            "queryset": handler.queryset,
-            "project": ws_data.get("project", []),
-            "meta": ws_data.get("meta", {}),
-        }
-
-        return bundle
+class JSONDeserializer(Deserializer):
+    def get_data(self, request, method_handler, **kwargs):
+        return kwargs.get("json_data", {})
