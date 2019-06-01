@@ -1,7 +1,6 @@
-import attr
 from django.contrib.auth.models import User
 
-from perestroika.methods import Get, Post, Put, Patch, Delete
+from perestroika.methods import Get, Post, Put, Delete, AllowAll
 from perestroika.resource import DjangoResource
 
 
@@ -9,8 +8,9 @@ class EmptyResource(DjangoResource):
     pass
 
 
-def out_user_validator(item: dict):
-    return {"username": item["username"]}
+class OutUser:
+    def __call__(self, item):
+        return {"username": item["username"]}
 
 
 class FullResource(DjangoResource):
@@ -18,19 +18,22 @@ class FullResource(DjangoResource):
 
     get = Get(
         queryset=User.objects.all(),
-        output_validator=out_user_validator
+        output_validator=OutUser(),
+        count_total=True
     )
 
     post = Post(
-        queryset=User.objects.all()
+        queryset=User.objects.all(),
+        input_validator=AllowAll(),
+        output_validator=OutUser(),
+        count_total=True
     )
 
     put = Put(
-        queryset=User.objects.all()
-    )
-
-    patch = Patch(
-        queryset=User.objects.all()
+        queryset=User.objects.all(),
+        input_validator=AllowAll(),
+        output_validator=OutUser(),
+        count_total=True
     )
 
     delete = Delete(

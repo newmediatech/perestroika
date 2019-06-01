@@ -13,8 +13,13 @@ logger = logging.getLogger(__name__)
 
 
 class DenyAll:
-    def __init__(self, **kwargs) -> None:
+    def __call__(self, data) -> None:
         raise TypeError("Deny all types")
+
+
+class AllowAll:
+    def __call__(self, data) -> None:
+        return data
 
 
 @attr.s(auto_attribs=True)
@@ -29,6 +34,7 @@ class Method:
     deserializer: Optional[Deserializer] = None
 
     skip_query_db: bool = False
+    count_total: bool = False
 
     input_validator: Callable = DenyAll
     output_validator: Callable = DenyAll
@@ -69,8 +75,8 @@ class Method:
             "output_schema": repr(self.output_validator)
         }
 
-    def get_client_data(self, request, *args, **kwargs):
-        return self.deserializer.deserialize(request, self, *args, **kwargs)
+    def get_client_data(self, request, **kwargs):
+        return self.deserializer.deserialize(request, self, **kwargs)
 
     def query_db(self, bundle):
         raise NotImplementedError()
@@ -122,8 +128,8 @@ class Method:
     def apply_response_hooks(self, request, bundle):
         self.apply_hooks(self.response_hooks, request, bundle)
 
-    def handle(self, request, *args, **kwargs):
-        bundle = self.get_client_data(request, *args, **kwargs)
+    def handle(self, request, **kwargs):
+        bundle = self.get_client_data(request, **kwargs)
 
         self.set_default_success_code(bundle)
         self.apply_request_hooks(request, bundle)
@@ -199,28 +205,12 @@ class Post(Method):
 @attr.s(auto_attribs=True)
 class Put(CanFilterAndExclude):
     def query_db(self, bundle):
-        raise NotImplementedError()
+        self.db_layer.put(bundle, self)
 
     input_validator: Callable = DenyAll
 
     def set_default_success_code(self, bundle):
-        raise NotImplementedError()
-
-    def schema(self):
-        _schema = super().schema()
-        _schema["input_schema"] = repr(self.input_validator)
-        return _schema
-
-
-@attr.s(auto_attribs=True)
-class Patch(CanFilterAndExclude):
-    input_validator: Callable = DenyAll
-
-    def query_db(self, bundle):
-        raise NotImplementedError()
-
-    def set_default_success_code(self, bundle):
-        raise NotImplementedError()
+        bundle["status_code"] = 200
 
     def schema(self):
         _schema = super().schema()

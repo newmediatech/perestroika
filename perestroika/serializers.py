@@ -26,11 +26,7 @@ class Serializer:
                 self.clean_item(item, project)
 
     def get_data(self, bundle):
-        _data = {
-            "limit": bundle.get("limit", 0),
-            "skip": bundle.get("skip", 0),
-            "total_count": bundle.get("total_count", 0),
-        }
+        _data = {}
 
         self.apply_project(bundle)
 
@@ -41,7 +37,20 @@ class Serializer:
         else:
             _data["items"] = _items
 
-        for item in ['filter', 'order', 'project', 'error_code', 'error_message', 'status_code']:
+        for item in [
+            'filter',
+            'order',
+            'project',
+            'error_code',
+            'error_message',
+            'status_code',
+            'limit',
+            'skip',
+            'total',
+            'created',
+            'updated',
+            'deleted',
+        ]:
             if bundle.get(item) is not None:
                 _data[item] = bundle[item]
 

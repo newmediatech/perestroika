@@ -22,17 +22,38 @@ class DjangoDbLayer(DbLayer):
             bundle["queryset"] = bundle["queryset"].only(*_project)
 
         bundle["items"] = bundle["queryset"].values()
-        bundle["total_count"] = bundle["queryset"].count()
+
+        if method.count_total:
+            bundle["total"] = bundle["queryset"].count()
 
     @staticmethod
     def post(bundle, method):
-        _objects = bundle.get("items")
+        items = bundle.get("items")
 
-        if not _objects:
+        if not items:
             raise BadRequest(message="Empty data for resource")
 
-        _objects = [bundle["queryset"].model(**data) for data in _objects]
+        items = [bundle["queryset"].model(**data) for data in items]
 
-        bundle["queryset"].model.objects.bulk_create(
-            _objects
-        )
+        bundle["queryset"].model.objects.bulk_create(items)
+        bundle["created"] = len(items)
+
+        if method.count_total:
+            bundle["total"] = bundle["queryset"].count()
+
+    @staticmethod
+    def put(bundle, method):
+        items = bundle.get("items")
+
+        if not items:
+            raise BadRequest(message="Empty data for resource")
+
+        updated = 0
+
+        for item in items:
+            updated += bundle["queryset"].update(**item)
+
+        bundle["updated"] = updated
+
+        if method.count_total:
+            bundle["total"] = bundle["queryset"].count()
