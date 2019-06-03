@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User
 
-from perestroika.methods import Get, Post, Put, Delete, AllowAll
+from perestroika.methods import Get, Post, Put, Delete
 from perestroika.resource import DjangoResource
+from perestroika.validators import AllowAll
 
 
 class EmptyResource(DjangoResource):

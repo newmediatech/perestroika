@@ -8,18 +8,9 @@ from perestroika.db_layers import DbLayer, DjangoDbLayer
 from perestroika.deserializers import Deserializer, DjangoDeserializer
 from perestroika.exceptions import RestException, BadRequest, InternalServerError
 from perestroika.serializers import Serializer, DjangoSerializer
+from perestroika.validators import DenyAll
 
 logger = logging.getLogger(__name__)
-
-
-class DenyAll:
-    def __call__(self, data) -> None:
-        raise TypeError("Deny all types")
-
-
-class AllowAll:
-    def __call__(self, data) -> None:
-        return data
 
 
 @attr.s(auto_attribs=True)
@@ -90,7 +81,7 @@ class Method:
             try:
                 _object = validator(_object)
                 _objects.append(_object)
-            except TypeError as e:
+            except Exception as e:
                 _desc = {
                     "data": _object,
                     "error": e
