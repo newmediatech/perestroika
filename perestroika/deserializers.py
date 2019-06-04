@@ -1,6 +1,7 @@
 import json
 from json import JSONDecodeError
 
+from perestroika.context import Context
 from perestroika.exceptions import BadRequest
 from perestroika.utils import multi_dict_to_dict
 
@@ -10,27 +11,23 @@ class Deserializer:
         raise NotImplementedError()
 
     def deserialize(self, request, method_handler, **kwargs):
-        _data = self.get_data(request, method_handler, **kwargs)
+        data = self.get_data(request, method_handler, **kwargs)
 
-        _items = _data.get("items", [])
-        _item = _data.get("item")
-
-        if _item:
-            _items = [_item]
-
-        if not _items and request.method.lower() in ["post", "put", "patch"]:
+        if not data.get("items") and request.method.lower() in ["post", "put", "patch"]:
             raise BadRequest(message="Need data for processing")
 
-        bundle = {
-            "order": _data.get("order", {}),
-            "filter": _data.get("filter", {}),
-            "items": _items,
-            "queryset": method_handler.queryset,
-            "project": _data.get("project", []),
-            "meta": _data.get("meta", {}),
-        }
+        return Context(
+            request=request,
 
-        return bundle
+            order=data.get("order", {}),
+            filter=data.get("filter", {}),
+            exclude=data.get("exclude", {}),
+            project=data.get("project", []),
+
+            items=data.get("items", []),
+            queryset=method_handler.queryset,
+            meta=data.get("meta", {}),
+        )
 
 
 class DjangoDeserializer(Deserializer):

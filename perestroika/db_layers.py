@@ -1,3 +1,4 @@
+from perestroika.context import Context
 from perestroika.exceptions import BadRequest
 
 
@@ -7,53 +8,45 @@ class DbLayer:
 
 class DjangoDbLayer(DbLayer):
     @staticmethod
-    def get(bundle, method):
-        _filter = bundle.get("filter")
-        _exclude = bundle.get("exclude")
-        _project = bundle.get("project")
+    def get(context: Context, method):
+        if context.filter:
+            context.queryset = context.queryset.filter(context)
 
-        if _filter:
-            bundle["queryset"] = bundle["queryset"].filter(_filter)
+        if context.exclude:
+            context.queryset = context.queryset.exclude(context.exclude)
 
-        if _exclude:
-            bundle["queryset"] = bundle["queryset"].exclude(_exclude)
+        if context.project:
+            context.queryset = context.queryset.only(*context.project)
 
-        if _project:
-            bundle["queryset"] = bundle["queryset"].only(*_project)
-
-        bundle["items"] = bundle["queryset"].values()
+        context.items = context.queryset.values()
 
         if method.count_total:
-            bundle["total"] = bundle["queryset"].count()
+            context.total = context.queryset.count()
 
     @staticmethod
-    def post(bundle, method):
-        items = bundle.get("items")
+    def post(context: Context, method):
+        if not context.items:
+            raise BadRequest(message="Empty data for insert")
 
-        if not items:
-            raise BadRequest(message="Empty data for resource")
+        items = [context.queryset.model(**data) for data in context.items]
 
-        items = [bundle["queryset"].model(**data) for data in items]
-
-        bundle["queryset"].model.objects.bulk_create(items)
-        bundle["created"] = len(items)
+        context.queryset.model.objects.bulk_create(items)
+        context.created = len(items)
 
         if method.count_total:
-            bundle["total"] = bundle["queryset"].count()
+            context.total = context.queryset.count()
 
     @staticmethod
-    def put(bundle, method):
-        items = bundle.get("items")
-
-        if not items:
-            raise BadRequest(message="Empty data for resource")
+    def put(context: Context, method):
+        if not context.items:
+            raise BadRequest(message="Empty data for update")
 
         updated = 0
 
-        for item in items:
-            updated += bundle["queryset"].update(**item)
+        for item in context.items:
+            updated += context.queryset.update(**item)
 
-        bundle["updated"] = updated
+        context.updated = updated
 
         if method.count_total:
-            bundle["total"] = bundle["queryset"].count()
+            context.total = context.queryset.count()

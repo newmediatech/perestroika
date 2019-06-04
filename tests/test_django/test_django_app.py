@@ -35,10 +35,7 @@ class DjangoTest(TestCase):
         _response = self.make_get("/test/full/", {})
         assert _response.status_code == 200
         assert _response.json() == {
-            'item': {'username': "first"},
-            'project': [],
-            'order': {},
-            'filter': {},
+            'items': [{'username': "first"}],
             'status_code': 200,
             'total': 1
         }
@@ -51,9 +48,6 @@ class DjangoTest(TestCase):
         assert _response.status_code == 200
         assert _response.json() == {
             'items': [{'username': "first"}, {"username": "second"}],
-            'project': [],
-            'order': {},
-            'filter': {},
             'status_code': 200,
             'total': 2
         }
@@ -65,13 +59,9 @@ class DjangoTest(TestCase):
     def test_post(self):
         assert User.objects.count() == 0
 
-        _response = self.make_post("/test/full/", {'item': {'username': "third"}})
+        _response = self.make_post("/test/full/", {'items': [{'username': "third"}]})
         assert _response.status_code == 201
         assert _response.json() == {
-            'item': {"username": "third"},
-            'project': [],
-            'order': {},
-            'filter': {},
             'status_code': 201,
             'created': 1,
             'total': 1
@@ -80,10 +70,10 @@ class DjangoTest(TestCase):
     def test_put(self):
         assert User.objects.count() == 0
 
-        _response = self.make_post("/test/full/", {'item': {'username': "third"}})
+        _response = self.make_post("/test/full/", {'items': [{'username': "third"}]})
         assert User.objects.count() == 1
 
-        _response = self.make_put("/test/full/", {'item': {'username': "fourth"}})
+        _response = self.make_put("/test/full/", {'items': [{'username': "fourth"}]})
         assert User.objects.count() == 1
 
         assert User.objects.all().first().username == "fourth"

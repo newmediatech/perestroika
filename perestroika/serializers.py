@@ -3,9 +3,11 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 
+from perestroika.context import Context
+
 
 class Serializer:
-    def serialize(self, request, bundle):
+    def serialize(self, context):
         raise NotImplementedError()
 
     def clean_item(self, item, project):
@@ -18,41 +20,31 @@ class Serializer:
         for k in to_drop:
             del item[k]
 
-    def apply_project(self, bundle):
-        project = bundle.get("project")
+    def apply_project(self, context: Context):
+        if context.project:
+            for item in context.items:
+                self.clean_item(item, context.project)
 
-        if project:
-            for item in bundle["items"]:
-                self.clean_item(item, project)
-
-    def get_data(self, bundle):
+    def get_data(self, context: Context):
         _data = {}
 
-        self.apply_project(bundle)
+        self.apply_project(context)
 
-        _items = bundle.get("items", [])
+        for name in [
+            'items', 'meta',
 
-        if len(_items) is 1:
-            _data["item"] = _items[0]
-        else:
-            _data["items"] = _items
+            'order', 'filter', 'exclude',
 
-        for item in [
-            'filter',
-            'order',
             'project',
-            'error_code',
-            'error_message',
             'status_code',
-            'limit',
-            'skip',
-            'total',
-            'created',
-            'updated',
-            'deleted',
+
+            'limit', 'skip',
+
+            'total', 'created', 'updated', 'deleted',
         ]:
-            if bundle.get(item) is not None:
-                _data[item] = bundle[item]
+            value = getattr(context, name)
+            if value:
+                _data[name] = getattr(context, name)
 
         return _data
 
@@ -62,10 +54,10 @@ class DjangoSerializer(Serializer):
     def get_encoder():
         return DjangoJSONEncoder
 
-    def serialize(self, request, bundle):
-        _data = self.get_data(bundle)
+    def serialize(self, context: Context):
+        _data = self.get_data(context)
 
-        return JsonResponse(_data, status=bundle['status_code'], encoder=self.get_encoder())
+        return JsonResponse(_data, status=context.status_code, encoder=self.get_encoder())
 
 
 class JSONSerializer(Serializer):
@@ -73,7 +65,7 @@ class JSONSerializer(Serializer):
     def get_encoder():
         return json.JSONEncoder
 
-    def serialize(self, request, bundle):
-        _data = self.get_data(bundle)
+    def serialize(self, context: Context):
+        _data = self.get_data(context)
 
         return json.dumps(_data, cls=self.get_encoder())
