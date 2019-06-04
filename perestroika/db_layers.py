@@ -33,13 +33,16 @@ class DjangoDbLayer(DbLayer):
         context.queryset.model.objects.bulk_create(items)
         context.created = len(items)
 
-        if method.count_total:
-            context.total = context.queryset.count()
-
     @staticmethod
     def put(context: Context, method):
         if not context.items:
             raise BadRequest(message="Empty data for update")
+
+        if context.filter:
+            context.queryset = context.queryset.filter(**context.filter)
+
+        if context.exclude:
+            context.queryset = context.queryset.exclude(**context.exclude)
 
         updated = 0
 
@@ -47,6 +50,3 @@ class DjangoDbLayer(DbLayer):
             updated += context.queryset.update(**item)
 
         context.updated = updated
-
-        if method.count_total:
-            context.total = context.queryset.count()

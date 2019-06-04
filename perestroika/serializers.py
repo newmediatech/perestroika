@@ -31,7 +31,7 @@ class Serializer:
         self.apply_project(context)
 
         for name in [
-            'items', 'meta',
+            'items',
 
             'order', 'filter', 'exclude',
 

@@ -26,15 +26,13 @@ class FullResource(DjangoResource):
     post = Post(
         queryset=User.objects.all(),
         input_validator=AllowAll(),
-        output_validator=OutUser(),
-        count_total=True
+        output_validator=OutUser()
     )
 
     put = Put(
         queryset=User.objects.all(),
         input_validator=AllowAll(),
-        output_validator=OutUser(),
-        count_total=True
+        output_validator=OutUser()
     )
 
     delete = Delete(

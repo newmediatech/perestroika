@@ -64,8 +64,7 @@ class DjangoTest(TestCase):
         assert _response.status_code == 201
         assert _response.json() == {
             'status_code': 201,
-            'created': 1,
-            'total': 1
+            'created': 1
         }
 
     def test_put(self):
@@ -83,7 +82,7 @@ class DjangoTest(TestCase):
         _response = self.make_get("/admin/", {})
         assert _response.status_code in [200, 302]
 
-    def test_filter(self):
+    def test_filter_get(self):
         User(username="first").save()
         User(username="second").save()
         User(username="third").save()
@@ -100,7 +99,7 @@ class DjangoTest(TestCase):
             'total': 1
         }
 
-    def test_exclude(self):
+    def test_exclude_get(self):
         User(username="first").save()
         User(username="second").save()
         User(username="third").save()
@@ -115,4 +114,53 @@ class DjangoTest(TestCase):
             'exclude': {'username__in': ['first']},
             'status_code': 200,
             'total': 2
+        }
+
+    def test_filter_put(self):
+        User(username="first").save()
+        User(username="second").save()
+        User(username="third").save()
+
+        assert User.objects.count() == 3
+
+        _response = self.make_put("/test/full/", {'items': [{'username': 'fourth'}], 'filter.username': 'first'})
+        assert _response.json() == {
+            'filter': {'username': 'first'},
+            'updated': 1,
+            'status_code': 200,
+        }
+        assert _response.status_code == 200
+
+        _response = self.make_get("/test/full/", {})
+        assert _response.status_code == 200
+
+        assert _response.json() == {
+            'items': [{'username': "fourth"}, {'username': "second"}, {'username': "third"}],
+            'status_code': 200,
+            'total': 3
+        }
+
+    def test_exclude_put(self):
+        User(username="first").save()
+        User(username="second").save()
+        User(username="third").save()
+
+        assert User.objects.count() == 3
+
+        _response = self.make_put("/test/full/", {'items': [{'username': 'fourth'}],
+                                                  'exclude.username__in': ['first', 'second']})
+        assert _response.json() == {
+            'exclude': {'username__in': ['first', 'second']},
+            'updated': 1,
+            'status_code': 200,
+        }
+        assert _response.status_code == 200
+
+        _response = self.make_get("/test/full/", {})
+        assert _response.status_code == 200
+
+        assert _response.json() == {
+            'items': [{'username': "first"}, {'username': "second"}, {'username': "fourth"}],
+            'status_code': 200,
+            'total': 3
         }

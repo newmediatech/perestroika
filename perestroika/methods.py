@@ -26,7 +26,6 @@ class Method:
     deserializer: Optional[Deserializer] = None
 
     skip_query_db: bool = False
-    count_total: bool = False
 
     input_validator: Callable = DenyAll
     output_validator: Callable = DenyAll
@@ -168,6 +167,8 @@ class NoBodyNoObjectsNoInput(CanFilterAndExclude):
 
 @attr.s(auto_attribs=True)
 class Get(NoBodyNoObjectsNoInput):
+    count_total: bool = False
+
     def query_db(self, context: Context):
         self.db_layer.get(context, self)
 
