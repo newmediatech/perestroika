@@ -1,6 +1,8 @@
 import json
 from json import JSONDecodeError
 
+from accordion import expand
+
 from perestroika.context import Context
 from perestroika.exceptions import BadRequest
 from perestroika.utils import multi_dict_to_dict
@@ -34,11 +36,13 @@ class DjangoDeserializer(Deserializer):
     def get_data(self, request, method_handler, **kwargs):
         try:
             data = json.loads(request.body)
+            data = expand(data)
         except JSONDecodeError:
             data = {}
 
         if request.method == 'GET':
             uri_data = multi_dict_to_dict(request.GET)
+            uri_data = expand(uri_data)
             data.update(uri_data)
 
         return data

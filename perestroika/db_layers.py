@@ -10,10 +10,10 @@ class DjangoDbLayer(DbLayer):
     @staticmethod
     def get(context: Context, method):
         if context.filter:
-            context.queryset = context.queryset.filter(context)
+            context.queryset = context.queryset.filter(**context.filter)
 
         if context.exclude:
-            context.queryset = context.queryset.exclude(context.exclude)
+            context.queryset = context.queryset.exclude(**context.exclude)
 
         if context.project:
             context.queryset = context.queryset.only(*context.project)

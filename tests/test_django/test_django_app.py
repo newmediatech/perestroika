@@ -21,7 +21,8 @@ class DjangoTest(TestCase):
         return self.client.post(url, content_type='application/json')
 
     def make_get(self, url, data):
-        return self.client.get(url, dict_to_multi_dict(data), content_type='application/json')
+        data = dict_to_multi_dict(data)
+        return self.client.get(url, data, content_type='application/json')
 
     def test_allowed_methods(self):
         _response = self.make_post("/test/empty/", {})
@@ -81,3 +82,37 @@ class DjangoTest(TestCase):
     def test_admin(self):
         _response = self.make_get("/admin/", {})
         assert _response.status_code in [200, 302]
+
+    def test_filter(self):
+        User(username="first").save()
+        User(username="second").save()
+        User(username="third").save()
+
+        assert User.objects.count() == 3
+
+        _response = self.make_get("/test/full/", {'filter.username__in': 'first'})
+        assert _response.status_code == 200
+
+        assert _response.json() == {
+            'items': [{'username': "first"}],
+            'filter': {'username__in': ['first']},
+            'status_code': 200,
+            'total': 1
+        }
+
+    def test_exclude(self):
+        User(username="first").save()
+        User(username="second").save()
+        User(username="third").save()
+
+        assert User.objects.count() == 3
+
+        _response = self.make_get("/test/full/", {'exclude.username__in': 'first'})
+        assert _response.status_code == 200
+
+        assert _response.json() == {
+            'items': [{'username': "second"}, {'username': "third"}],
+            'exclude': {'username__in': ['first']},
+            'status_code': 200,
+            'total': 2
+        }
