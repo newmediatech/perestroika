@@ -7,8 +7,12 @@ class DbLayer:
 
 
 class DjangoDbLayer(DbLayer):
-    @staticmethod
-    def get(context: Context, method):
+    @classmethod
+    def queryset_to_items(cls, context):
+        return context.queryset.values()
+
+    @classmethod
+    def get(cls, context: Context, method):
         if context.filter:
             context.queryset = context.queryset.filter(**context.filter)
 
@@ -18,7 +22,7 @@ class DjangoDbLayer(DbLayer):
         if context.project:
             context.queryset = context.queryset.only(*context.project)
 
-        context.items = context.queryset.values()
+        context.items = cls.queryset_to_items(context)
 
         if method.count_total:
             context.total = context.queryset.count()
