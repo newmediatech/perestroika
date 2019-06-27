@@ -182,7 +182,7 @@ class Post(Method):
 
     def query_db(self, context: Context):
         self.db_layer.post(context, self)
-        context.items = {}
+        context.items = []
 
     def schema(self):
         _schema = super().schema()
@@ -197,7 +197,7 @@ class Post(Method):
 class Put(CanFilterAndExclude):
     def query_db(self, context: Context):
         self.db_layer.put(context, self)
-        context.items = {}
+        context.items = []
 
     input_validator: Callable = DenyAll
 

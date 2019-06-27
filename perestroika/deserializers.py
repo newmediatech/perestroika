@@ -22,8 +22,10 @@ class Deserializer:
             request=request,
 
             order=data.get("order", {}),
-            filter=data.get("filter", {}),
-            exclude=data.get("exclude", {}),
+
+            user_filter=data.get("filter", {}),
+            user_exclude=data.get("exclude", {}),
+
             project=data.get("project", []),
 
             items=data.get("items", []),

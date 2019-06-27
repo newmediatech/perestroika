@@ -33,7 +33,7 @@ class Serializer:
         for name in [
             'items',
 
-            'order', 'filter', 'exclude',
+            'order',
 
             'project',
             'status_code',
@@ -45,6 +45,12 @@ class Serializer:
             value = getattr(context, name)
             if value:
                 _data[name] = getattr(context, name)
+
+        if context.user_filter:
+            _data['filter'] = context.user_filter
+
+        if context.user_exclude:
+            _data['exclude'] = context.user_exclude
 
         return _data
 

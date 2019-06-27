@@ -1,3 +1,5 @@
+from django.db.models import Q
+
 from perestroika.context import Context
 from perestroika.exceptions import BadRequest
 
@@ -12,12 +14,36 @@ class DjangoDbLayer(DbLayer):
         return context.queryset.values()
 
     @classmethod
-    def get(cls, context: Context, method):
-        if context.filter:
-            context.queryset = context.queryset.filter(**context.filter)
+    def merge_filters(cls, context: Context):
+        query = Q()
 
-        if context.exclude:
-            context.queryset = context.queryset.exclude(**context.exclude)
+        if context.user_filter:
+            query &= Q(**context.user_filter)
+
+        if context.system_filter:
+            query &= context.system_filter
+
+        context.merged_filter = query
+
+    @classmethod
+    def merge_excludes(cls, context: Context):
+        query = Q()
+
+        if context.user_exclude:
+            query &= Q(**context.user_exclude)
+
+        if context.system_exclude:
+            query &= context.system_exclude
+
+        context.merged_exclude = query
+
+    @classmethod
+    def get(cls, context: Context, method):
+        cls.merge_filters(context)
+        cls.merge_excludes(context)
+
+        context.queryset = context.queryset.filter(context.merged_filter)
+        context.queryset = context.queryset.exclude(context.merged_exclude)
 
         if context.project:
             context.queryset = context.queryset.only(*context.project)
@@ -37,16 +63,16 @@ class DjangoDbLayer(DbLayer):
         context.queryset.model.objects.bulk_create(items)
         context.created = len(items)
 
-    @staticmethod
-    def put(context: Context, method):
+    @classmethod
+    def put(cls, context: Context, method):
         if not context.items:
             raise BadRequest(message="Empty data for update")
 
-        if context.filter:
-            context.queryset = context.queryset.filter(**context.filter)
+        cls.merge_filters(context)
+        cls.merge_excludes(context)
 
-        if context.exclude:
-            context.queryset = context.queryset.exclude(**context.exclude)
+        context.queryset = context.queryset.filter(context.merged_filter)
+        context.queryset = context.queryset.exclude(context.merged_exclude)
 
         updated = 0
 
