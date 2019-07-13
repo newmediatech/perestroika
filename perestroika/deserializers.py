@@ -42,10 +42,13 @@ class DjangoDeserializer(Deserializer):
         except JSONDecodeError:
             data = {}
 
-        if request.method == 'GET':
-            uri_data = multi_dict_to_dict(request.GET)
-            uri_data = expand(uri_data)
-            data.update(uri_data)
+        get_data = multi_dict_to_dict(request.GET)
+        get_data = expand(get_data)
+        data.update(get_data)
+
+        post_data = multi_dict_to_dict(request.POST)
+        post_data = expand(post_data)
+        data.update(post_data)
 
         return data
 
