@@ -26,7 +26,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Framework :: Django :: 2.2.3',
+        'Framework :: Django :: 2.2',
     ],
     python_requires=">3.6.0",
     platforms=["OS Independent"],
