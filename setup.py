@@ -2,7 +2,7 @@ from os import path
 
 from setuptools import setup, find_packages
 
-version = "0.1.16"
+version = "0.1.17"
 
 here = path.abspath(path.dirname(__file__))
 
@@ -26,13 +26,15 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Framework :: Django :: 2.2',
+        'Framework :: Django :: 2.2.3',
     ],
     python_requires=">3.6.0",
     platforms=["OS Independent"],
     license="LICENSE.txt",
     install_requires=[
-        "validate-it (==0.9.2)",
+        "validate-it (>=0.9.3)",
+        "accordion (>=0.2.3)",
+        "django (>=2.2.3)",
     ],
     extras_require={
         "tests": [
