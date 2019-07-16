@@ -1,8 +1,7 @@
 import logging
 from collections import Callable
 from typing import List, Any, Optional
-
-import attr
+from validate_it import schema, Options
 
 from perestroika.context import Context
 from perestroika.db_layers import DbLayer, DjangoDbLayer
@@ -14,7 +13,7 @@ from perestroika.validators import DenyAll
 logger = logging.getLogger(__name__)
 
 
-@attr.s(auto_attribs=True)
+@schema
 class Method:
     mode: str = 'django'
 
@@ -25,18 +24,18 @@ class Method:
     serializer: Optional[Serializer] = None
     deserializer: Optional[Deserializer] = None
 
-    skip_query_db: bool = False
+    skip_query_db: bool = Options(default=False)
 
-    input_validator: Callable = DenyAll
-    output_validator: Callable = DenyAll
+    input_validator: Callable = Options(default=DenyAll)
+    output_validator: Callable = Options(default=DenyAll)
 
-    pre_query_hooks: List[Callable] = attr.Factory(list)
-    post_query_hooks: List[Callable] = attr.Factory(list)
+    pre_query_hooks: List[Callable] = Options(default=list)
+    post_query_hooks: List[Callable] = Options(default=list)
 
-    request_hooks: List[Callable] = attr.Factory(list)
-    response_hooks: List[Callable] = attr.Factory(list)
+    request_hooks: List[Callable] = Options(default=list)
+    response_hooks: List[Callable] = Options(default=list)
 
-    def __attrs_post_init__(self):
+    def __validate_it__post_init__(self):
         need_fields = []
 
         if self.mode == 'django':
@@ -134,10 +133,10 @@ class Method:
         return self.serializer.serialize(context)
 
 
-@attr.s(auto_attribs=True)
+@schema
 class CanFilterAndExclude(Method):
-    filter_validator: Callable = DenyAll
-    exclude_validator: Callable = DenyAll
+    filter_validator: Callable = Options(default=DenyAll)
+    exclude_validator: Callable = Options(default=DenyAll)
 
     def set_default_success_code(self, context: Context):
         raise NotImplementedError()
@@ -152,7 +151,7 @@ class CanFilterAndExclude(Method):
         return _schema
 
 
-@attr.s(auto_attribs=True)
+@schema
 class NoBodyNoObjectsNoInput(CanFilterAndExclude):
     def set_default_success_code(self, context: Context):
         raise NotImplementedError()
@@ -165,9 +164,9 @@ class NoBodyNoObjectsNoInput(CanFilterAndExclude):
         raise NotImplementedError()
 
 
-@attr.s(auto_attribs=True)
+@schema
 class Get(NoBodyNoObjectsNoInput):
-    count_total: bool = False
+    count_total: bool = Options(default=False)
 
     def query_db(self, context: Context):
         self.db_layer.get(context, self)
@@ -176,9 +175,9 @@ class Get(NoBodyNoObjectsNoInput):
         context.status_code = 200
 
 
-@attr.s(auto_attribs=True)
+@schema
 class Post(Method):
-    input_validator: Callable = DenyAll
+    input_validator: Callable = Options(default=DenyAll)
 
     def query_db(self, context: Context):
         self.db_layer.post(context, self)
@@ -193,13 +192,13 @@ class Post(Method):
         context.status_code = 201
 
 
-@attr.s(auto_attribs=True)
+@schema
 class Put(CanFilterAndExclude):
     def query_db(self, context: Context):
         self.db_layer.put(context, self)
         context.items = []
 
-    input_validator: Callable = DenyAll
+    input_validator: Callable = Options(default=DenyAll)
 
     def set_default_success_code(self, context: Context):
         context.status_code = 200
@@ -210,7 +209,7 @@ class Put(CanFilterAndExclude):
         return _schema
 
 
-@attr.s(auto_attribs=True)
+@schema
 class Delete(NoBodyNoObjectsNoInput):
     def query_db(self, context: Context):
         raise NotImplementedError()

@@ -2,7 +2,7 @@ from os import path
 
 from setuptools import setup, find_packages
 
-version = "0.1.17"
+version = "0.1.18"
 
 here = path.abspath(path.dirname(__file__))
 
@@ -32,7 +32,7 @@ setup(
     platforms=["OS Independent"],
     license="LICENSE.txt",
     install_requires=[
-        "validate-it (>=0.9.3)",
+        "validate-it (>=0.10.0)",
         "accordion (>=0.2.3)",
         "django (>=2.2.3)",
     ],
