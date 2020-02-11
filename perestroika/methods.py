@@ -6,7 +6,6 @@ from validate_it import schema, Options
 from perestroika.context import Context
 from perestroika.db_layers import DbLayer, DjangoDbLayer
 from perestroika.deserializers import Deserializer, DjangoDeserializer
-from perestroika.exceptions import RestException, BadRequest, InternalServerError
 from perestroika.serializers import Serializer, DjangoSerializer
 from perestroika.validators import DenyAll
 
@@ -69,31 +68,17 @@ class Method:
         raise NotImplementedError()
 
     @staticmethod
-    def validate(validator, context: Context, validation_exception_class=RestException):
-        _errors = []
-        items = []
-
-        for item in context.items:
-            try:
-                item = validator(item)
-                items.append(item)
-            except Exception as e:
-                _desc = {
-                    "data": item,
-                    "error": e
-                }
-                _errors.append(e)
-
-        if _errors:
-            raise validation_exception_class(message="Wrong data", errors=_errors)
-
-        context.items = items
+    def validate(validator, context: Context):
+        context.items = [
+            validator(item)
+            for item in context.items
+        ]
 
     def validate_input(self, context: Context):
-        self.validate(self.input_validator, context, validation_exception_class=BadRequest)
+        self.validate(self.input_validator, context)
 
     def validate_output(self, context: Context):
-        self.validate(self.output_validator, context, validation_exception_class=InternalServerError)
+        self.validate(self.output_validator, context)
 
     @staticmethod
     def apply_hooks(hooks, context: Context):
