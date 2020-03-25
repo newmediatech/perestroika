@@ -63,6 +63,8 @@ class DjangoResource(Resource):
 
 
 class JSONResource(DjangoResource):
+    from django.views.decorators.csrf import csrf_exempt
+
     def method_not_permitted(self):
         permitted_methods = list(self.methods.keys()) if self.methods else []
 
@@ -74,6 +76,7 @@ class JSONResource(DjangoResource):
             }
         )
 
+    @csrf_exempt
     def handler(self, request, **kwargs):
         try:
             return super().handler(request, **kwargs)

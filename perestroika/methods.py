@@ -204,6 +204,7 @@ class Delete(NoBodyNoObjectsNoInput):
 
 
 __all__ = [
+    "Method",
     "Get",
     "Post",
     "Put",
