@@ -2,7 +2,7 @@ from os import path
 
 from setuptools import setup, find_packages
 
-version = "0.1.20"
+version = "0.1.30"
 
 here = path.abspath(path.dirname(__file__))
 
@@ -24,8 +24,8 @@ setup(
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Framework :: Django :: 2.2',
     ],
     python_requires=">3.6.0",

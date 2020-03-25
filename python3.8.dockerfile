@@ -1,4 +1,4 @@
-FROM pypy:3.6-7.0.0
+FROM python:3.8
 
 COPY dev-requirements.txt /var/perestroika/dev-requirements.txt
 COPY requirements.txt /var/perestroika/requirements.txt

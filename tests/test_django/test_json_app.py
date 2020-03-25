@@ -10,7 +10,13 @@ from perestroika.exceptions import BadRequest
 from perestroika.utils import dict_to_multi_dict
 
 
-class DjangoTest(TestCase):
+class JsonTest(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        User.objects.all().delete()
+
     def make_post(self, url, data):
         return self.client.post(url, dumps(data), content_type='application/json')
 
@@ -25,15 +31,16 @@ class DjangoTest(TestCase):
         return self.client.get(url, data, content_type='application/json')
 
     def test_allowed_methods(self):
-        _response = self.make_post("/test/empty_django/", {})
+        _response = self.make_post("/test/empty_json/", {})
         assert _response.status_code == 405
+        assert _response.json() == {'message': 'Permitted methods: []', 'status_code': 405}
 
     def test_empty_get(self):
         User(username="first").save()
 
         assert User.objects.count() == 1
 
-        _response = self.make_get("/test/full_django/", {})
+        _response = self.make_get("/test/full_json/", {})
         assert _response.status_code == 200
         assert _response.json() == {
             'items': [{'username': "first"}],
@@ -45,7 +52,7 @@ class DjangoTest(TestCase):
 
         assert User.objects.count() == 2
 
-        _response = self.make_get("/test/full_django/", {})
+        _response = self.make_get("/test/full_json/", {})
         assert _response.status_code == 200
         assert _response.json() == {
             'items': [{'username': "first"}, {"username": "second"}],
@@ -54,13 +61,14 @@ class DjangoTest(TestCase):
         }
 
     def test_json_validation_no_items(self):
-        with self.assertRaises(BadRequest):
-            _response = self.make_empty_post("/test/full_django/")
+        _response = self.make_empty_post("/test/full_json/")
+        assert _response.status_code == 400
+        assert _response.json() == {'error': 'Need data for processing', 'status_code': 400}
 
     def test_post(self):
         assert User.objects.count() == 0
 
-        _response = self.make_post("/test/full_django/", {'items': [{'username': "third"}]})
+        _response = self.make_post("/test/full_json/", {'items': [{'username': "third"}]})
         assert _response.status_code == 201
         assert _response.json() == {
             'status_code': 201,
@@ -70,10 +78,10 @@ class DjangoTest(TestCase):
     def test_put(self):
         assert User.objects.count() == 0
 
-        _response = self.make_post("/test/full_django/", {'items': [{'username': "third"}]})
+        _response = self.make_post("/test/full_json/", {'items': [{'username': "third"}]})
         assert User.objects.count() == 1
 
-        _response = self.make_put("/test/full_django/", {'items': [{'username': "fourth"}]})
+        _response = self.make_put("/test/full_json/", {'items': [{'username': "fourth"}]})
         assert User.objects.count() == 1
 
         assert User.objects.all().first().username == "fourth"
@@ -89,7 +97,7 @@ class DjangoTest(TestCase):
 
         assert User.objects.count() == 3
 
-        _response = self.make_get("/test/full_django/", {'filter.username__in': 'first'})
+        _response = self.make_get("/test/full_json/", {'filter.username__in': 'first'})
         assert _response.status_code == 200
 
         assert _response.json() == {
@@ -106,7 +114,7 @@ class DjangoTest(TestCase):
 
         assert User.objects.count() == 3
 
-        _response = self.make_get("/test/full_django/", {'exclude.username__in': 'first'})
+        _response = self.make_get("/test/full_json/", {'exclude.username__in': 'first'})
         assert _response.status_code == 200
 
         assert _response.json() == {
@@ -123,7 +131,7 @@ class DjangoTest(TestCase):
 
         assert User.objects.count() == 3
 
-        _response = self.make_put("/test/full_django/", {'items': [{'username': 'fourth'}], 'filter.username': 'first'})
+        _response = self.make_put("/test/full_json/", {'items': [{'username': 'fourth'}], 'filter.username': 'first'})
         assert _response.json() == {
             'filter': {'username': 'first'},
             'updated': 1,
@@ -131,7 +139,7 @@ class DjangoTest(TestCase):
         }
         assert _response.status_code == 200
 
-        _response = self.make_get("/test/full_django/", {})
+        _response = self.make_get("/test/full_json/", {})
         assert _response.status_code == 200
 
         assert _response.json() == {
@@ -148,7 +156,7 @@ class DjangoTest(TestCase):
         assert User.objects.count() == 3
 
         _response = self.make_put(
-            "/test/full_django/",
+            "/test/full_json/",
             {
                 'items': [
                     {'username': 'fourth'}
@@ -163,7 +171,7 @@ class DjangoTest(TestCase):
         }
         assert _response.status_code == 200
 
-        _response = self.make_get("/test/full_django/", {})
+        _response = self.make_get("/test/full_json/", {})
         assert _response.status_code == 200
 
         assert _response.json() == {

@@ -1,6 +1,8 @@
 import json
 from typing import Dict, Union, Optional
 
+from django.http import JsonResponse
+
 from perestroika.exceptions import RestException
 from perestroika.methods import Method
 
@@ -60,41 +62,26 @@ class DjangoResource(Resource):
         return JsonResponse(_schema)
 
 
-class JSONResource(Resource):
-    def get_method_handler(self, **kwargs):
-        if self.methods:
-            return self.methods.get(kwargs.get('method'))
-
+class JSONResource(DjangoResource):
     def method_not_permitted(self):
         permitted_methods = list(self.methods.keys()) if self.methods else []
 
-        return json.dumps(
-            {
-                'status': 'error',
+        return JsonResponse(
+            status=405,
+            data={
                 'status_code': 405,
                 'message': f'Permitted methods: {permitted_methods}'
             }
         )
 
     def handler(self, request, **kwargs):
-        method_handler = self.get_method_handler(**kwargs)
-
-        if method_handler:
-            try:
-                response = method_handler.handle(
-                    request,
-                    json_data=kwargs.get('json_data'),
-                    method=kwargs.get('method')
-                )
-            except RestException as e:
-                return json.dumps(
-                    {
-                        'status': 'error',
-                        'status_code': e.status_code,
-                        'message': e.message
-                    }
-                )
-
-            return response
-
-        return self.method_not_permitted()
+        try:
+            return super().handler(request, **kwargs)
+        except RestException as e:
+            return JsonResponse(
+                status=e.status_code,
+                data={
+                    'status_code': e.status_code,
+                    'error': e.message
+                }
+            )
